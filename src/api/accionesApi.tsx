@@ -37,10 +37,10 @@ export const obtenerCotizacion = async (
   fechaHasta: string = "",
   tipoVisualizacion: "real" | "historico" = "real"
 ) => {
-  let url = `${BASE_URL}?symbol=${simbolo}&interval=${intervalo}&apikey=${API_KEY}`;
+  let url = `${BASE_URL}/time_series?symbol=${simbolo}&interval=${intervalo}&apikey=${API_KEY}`;
 
   if (tipoVisualizacion === "historico" && fechaDesde && fechaHasta) {
-    url = `${BASE_URL}?symbol=${simbolo}&interval=${intervalo}&start_date=${fechaDesde}&end_date=${fechaHasta}&apikey=${API_KEY}`;
+    url = `${BASE_URL}/time_series?symbol=${simbolo}&interval=${intervalo}&start_date=${fechaDesde}&end_date=${fechaHasta}&apikey=${API_KEY}`;
   }
 
   try {
