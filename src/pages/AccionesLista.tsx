@@ -2,17 +2,20 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { obtenerAcciones } from '../api/accionesApi';
 import Tabla from '../components/Tabla';
 import { Container, Row, Col } from 'react-bootstrap'
+import { Accion } from '../api/accionesApi_Types';
 
 const AccionesLista = () => {
-  const [acciones, setAcciones] = useState([]);
+  const [acciones, setAcciones] = useState<Accion[]>([]);
   const [filtroNombre, setFiltroNombre] = useState('');
   const [filtroSimbolo, setFiltroSimbolo] = useState('');
+  const [pending, setPending ] = useState<boolean>(true)
 
   useEffect(() => {
     const cargarAcciones = async () => {
+      setPending(true)
       const datos = await obtenerAcciones();
-      console.log(datos, "acciones sin filtrar")
       setAcciones(datos);
+      setPending(false)
     };
 
     cargarAcciones();
@@ -24,7 +27,7 @@ const AccionesLista = () => {
   ), [acciones, filtroNombre, filtroSimbolo]);
 
  
-console.log(accionesFiltradas, "acciones")
+
   return (
     <Container fluid className='bg-light'>
       <Row>
@@ -56,7 +59,7 @@ console.log(accionesFiltradas, "acciones")
       </Row>
       </Col>
       </Row>
-      <Tabla acciones={accionesFiltradas}  />
+      <Tabla acciones={accionesFiltradas} pending={pending}  />
       
       
     </Container>

@@ -1,39 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { obtenerCotizacion, obtenerDetalleAccion } from '../api/accionesApi'; // Asegúrate de implementar esta función correctamente en tu API.
 import GraficoAccion from '../components/GraficoAccion';
-import { Col, Container, Row } from 'react-bootstrap';
+import { Button, Col, Container, Row } from 'react-bootstrap';
+import { CotizacionElemento } from '../components/GraficoAccion_Types';
 
 const AccionDetalle = () => {
-  const { simbolo } = useParams();
-  const [tipoVisualizacion, setTipoVisualizacion] = useState('real'); // 'real' o 'historico'
-  const [intervalo, setIntervalo] = useState('5min');
+  const { simbolo } = useParams<{ simbolo: string }>();
+  const [tipoVisualizacion, setTipoVisualizacion] = useState<"real" | "historico">('real'); // 'real' o 'historico'
+  const [intervalo, setIntervalo] = useState<'1min' | '5min' | '15min'>('5min');
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
-  const [cotizacion, setCotizacion] = useState([]);
+  const [cotizacion, setCotizacion] = useState<CotizacionElemento[]>([]);
   const [ultimoUpdate, setUltimoUpdate] = useState('');
   const [nombre, setNombre] = useState('');
   const [moneda, setMoneda] = useState('');
+  const navigate = useNavigate();
   useEffect(() => {
-    const cargarDetalleAccion = async () => {
-      const datos = await obtenerDetalleAccion(simbolo);
-      setNombre(datos.name)
-      setMoneda(datos.currency)
-    };
-     cargarDetalleAccion();
+    if (simbolo) { 
+      const cargarDetalleAccion = async () => {
+        const datos = await obtenerDetalleAccion(simbolo);
+        setNombre(datos.name);
+        setMoneda(datos.currency);
+      };
+      cargarDetalleAccion();
+    }
   }, [simbolo]);
 
   useEffect(() => {
-    let intervalId;
+    let intervalId: NodeJS.Timeout;
 
     const cargarCotizacion = async () => {
-      try {
+      if (simbolo) try {
         const respuesta = await obtenerCotizacion(simbolo, intervalo, fechaDesde, fechaHasta, tipoVisualizacion);
         if (respuesta && Array.isArray(respuesta)) {
           // Ordenar los datos por datetime antes de actualizar el estado
-          console.log(respuesta, "respuestax")
-          const datosOrdenados = respuesta.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
-          const cotizacionData = datosOrdenados.map(dato => [new Date(dato.datetime).getTime(), parseFloat(dato.close)]);
+          const datosOrdenados = respuesta.sort((a, b) => {
+            const dateA = new Date(a.datetime).getTime(); // Convierte a milisegundos
+            const dateB = new Date(b.datetime).getTime(); // Convierte a milisegundos
+            return dateA - dateB; // Ahora estamos restando números explícitamente
+          });
+          const cotizacionData: CotizacionElemento[] = datosOrdenados.map(dato => [new Date(dato.datetime).getTime(), parseFloat(dato.close)]);
           setCotizacion(cotizacionData);
           setUltimoUpdate(`Última actualización: ${new Date().toLocaleTimeString()}`);
         } else {
@@ -55,10 +62,20 @@ const AccionDetalle = () => {
 
     return () => clearInterval(intervalId); // Limpieza al desmontar o cambiar de tipo
   }, [tipoVisualizacion, intervalo, fechaDesde, fechaHasta, simbolo]);
-console.log(useParams(), "effff")
   return (
     <Container fluid className='bg-light'>
     <Row>
+    <Col md="auto" className="d-flex bg-danger justify-content-start">
+          <Button
+            onClick={() => navigate('/')}
+            style={{
+              background: `url('/arrow.png') no-repeat center center / contain`,
+              border: 'none',
+              width: '50px', // Ajusta según el tamaño de tu imagen
+              height: '50px', // Ajusta según el tamaño de tu imagen
+            }}
+          />
+        </Col>
     <Col className="d-flex bg-danger text-white justify-content-center">
       <h1>{simbolo} - {nombre} - {moneda} </h1>
       </Col>
@@ -89,7 +106,7 @@ console.log(useParams(), "effff")
             <p>Intervalo</p>
             </div>
             <div>
-        <select value={intervalo} onChange={(e) => setIntervalo(e.target.value)}>
+        <select value={intervalo} onChange={(e) => setIntervalo(e.target.value as '1min' | '5min' | '15min')}>
           <option value="1min">1 min</option>
           <option value="5min">5 min</option>
           <option value="15min">15 min</option>
