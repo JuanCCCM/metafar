@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { obtenerCotizacion, obtenerDetalleAccion } from '../api/accionesApi'; // Asegúrate de implementar esta función correctamente en tu API.
+import { obtenerCotizacion, obtenerDetalleAccion } from '../api/accionesApi'; 
 import GraficoAccion from '../components/GraficoAccion';
 import { Button, Col, Container, Row } from 'react-bootstrap';
 import { CotizacionElemento } from '../components/GraficoAccion_Types';
 
 const AccionDetalle = () => {
   const { simbolo } = useParams<{ simbolo: string }>();
-  const [tipoVisualizacion, setTipoVisualizacion] = useState<"real" | "historico">('real'); // 'real' o 'historico'
+  const [tipoVisualizacion, setTipoVisualizacion] = useState<"real" | "historico">('real'); 
   const [intervalo, setIntervalo] = useState<'1min' | '5min' | '15min'>('5min');
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
@@ -34,11 +34,10 @@ const AccionDetalle = () => {
       if (simbolo) try {
         const respuesta = await obtenerCotizacion(simbolo, intervalo, fechaDesde, fechaHasta, tipoVisualizacion);
         if (respuesta && Array.isArray(respuesta)) {
-          // Ordenar los datos por datetime antes de actualizar el estado
           const datosOrdenados = respuesta.sort((a, b) => {
-            const dateA = new Date(a.datetime).getTime(); // Convierte a milisegundos
-            const dateB = new Date(b.datetime).getTime(); // Convierte a milisegundos
-            return dateA - dateB; // Ahora estamos restando números explícitamente
+            const dateA = new Date(a.datetime).getTime(); 
+            const dateB = new Date(b.datetime).getTime(); 
+            return dateA - dateB; 
           });
           const cotizacionData: CotizacionElemento[] = datosOrdenados.map(dato => [new Date(dato.datetime).getTime(), parseFloat(dato.close)]);
           setCotizacion(cotizacionData);
@@ -55,12 +54,11 @@ const AccionDetalle = () => {
     cargarCotizacion();
 
     if (tipoVisualizacion === 'real') {
-      // Actualizar cotización cada minuto según el intervalo seleccionado
       const delay = intervalo === '1min' ? 60000 : intervalo === '5min' ? 300000 : 900000;
       intervalId = setInterval(cargarCotizacion, delay);
     }
 
-    return () => clearInterval(intervalId); // Limpieza al desmontar o cambiar de tipo
+    return () => clearInterval(intervalId); 
   }, [tipoVisualizacion, intervalo, fechaDesde, fechaHasta, simbolo]);
   return (
     <Container fluid className='bg-light'>
@@ -71,8 +69,8 @@ const AccionDetalle = () => {
             style={{
               background: `url('/arrow.png') no-repeat center center / contain`,
               border: 'none',
-              width: '50px', // Ajusta según el tamaño de tu imagen
-              height: '50px', // Ajusta según el tamaño de tu imagen
+              width: '50px',
+              height: '50px', 
             }}
           />
         </Col>
